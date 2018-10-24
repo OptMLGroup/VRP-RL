@@ -10,12 +10,12 @@ Implementation of our paper: [Reinforcement Learning for Solving the Vehicle Rou
 ## Dependencies
 
 
-* NumPy
-* [tensorflow](https://www.tensorflow.org/)=1.2
+* Numpy
+* [tensorflow](https://www.tensorflow.org/)>=1.2
 * tqdm
 
 ## How to Run
-### train
+### Train
 By default, the code is running in the training mode on a single gpu. For running the code, one can use the following command:
 ```bash
 python main.py --task=vrp10
