@@ -1,0 +1,17 @@
+# Add any directories, files, or patterns you don't want to be tracked by version control
+*.pdf
+*.pyc
+*.npy
+*.txt
+*.out
+*.err
+*.mat
+*.jpg
+*.aux
+*.log
+*.blb
+*.gz
+*.xls
+*.synctex
+*.synctex.gz
+*.synctex.gz(busy)
