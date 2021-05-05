@@ -25,7 +25,7 @@ class LinearEmbedding(Embedding):
         '''
 
         super(LinearEmbedding,self).__init__('linear',embedding_dim)
-        self.project_emb = tf.layers.Conv1D(embedding_dim,1,
+        self.project_emb = tf.compat.v1.layers.Conv1D(embedding_dim,1,
             _scope=_scope+'Embedding/conv1d')
 
     def __call__(self,input_pnt):
@@ -37,9 +37,9 @@ class LinearEmbedding(Embedding):
 
 
 if __name__ == "__main__":
-    sess = tf.InteractiveSession()
-    input_pnt = tf.random_uniform([2,10,2])
+    sess = tf.compat.v1.InteractiveSession()
+    input_pnt = tf.random.uniform([2,10,2])
     Embedding = LinearEmbedding(128)
     emb_inp_pnt = Embedding(input_pnt)
-    sess.run(tf.global_variables_initializer())
-    print(sess.run([emb_inp_pnt,tf.shape(emb_inp_pnt)]))
+    sess.run(tf.compat.v1.global_variables_initializer())
+    print(sess.run([emb_inp_pnt,tf.shape(input=emb_inp_pnt)]))

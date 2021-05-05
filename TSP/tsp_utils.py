@@ -120,10 +120,10 @@ class Env(object):
 
         self.n_nodes = args['n_nodes']
         self.input_dim = args['input_dim']
-        self.input_data = tf.placeholder(tf.float32,\
+        self.input_data = tf.compat.v1.placeholder(tf.float32,\
             shape=[None,self.n_nodes,args['input_dim']])
         self.input_pnt = self.input_data
-        self.batch_size = tf.shape(self.input_data)[0] 
+        self.batch_size = tf.shape(input=self.input_data)[0] 
 
     def reset(self,beam_width=1):
         '''
@@ -198,6 +198,6 @@ def reward_func(sample_solution=None):
     # get the reward based on the route lengths
 
 
-    route_lens_decoded = tf.reduce_sum(tf.pow(tf.reduce_sum(tf.pow(\
-        (sample_solution_tilted - sample_solution) ,2), 2) , .5), 0)
+    route_lens_decoded = tf.reduce_sum(input_tensor=tf.pow(tf.reduce_sum(input_tensor=tf.pow(\
+        (sample_solution_tilted - sample_solution) ,2), axis=2) , .5), axis=0)
     return route_lens_decoded 
