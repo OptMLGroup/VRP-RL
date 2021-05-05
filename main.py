@@ -10,6 +10,8 @@ from configs import ParseParams
 from shared.decode_step import RNNDecodeStep
 from model.attention_agent import RLAgent
 
+tf.compat.v1.disable_eager_execution()
+
 def load_task_specific_components(task):
     '''
     This function load task-specific libraries
@@ -36,9 +38,9 @@ def load_task_specific_components(task):
     return DataGenerator, Env, reward_func, AttentionActor, AttentionCritic
 
 def main(args, prt):
-    config = tf.ConfigProto()
+    config = tf.compat.v1.ConfigProto()
     config.gpu_options.allow_growth = True
-    sess = tf.Session(config=config)
+    sess = tf.compat.v1.Session(config=config)
 
     # load task specific classes
     DataGenerator, Env, reward_func, AttentionActor, AttentionCritic = \
@@ -97,7 +99,7 @@ if __name__ == "__main__":
     if random_seed is not None and random_seed > 0:
         prt.print_out("# Set random seed to %d" % random_seed)
         np.random.seed(random_seed)
-        tf.set_random_seed(random_seed)
-    tf.reset_default_graph()
+        tf.compat.v1.set_random_seed(random_seed)
+    tf.compat.v1.reset_default_graph()
 
     main(args, prt)

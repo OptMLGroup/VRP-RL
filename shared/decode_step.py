@@ -172,12 +172,12 @@ class RNNDecodeStep(DecodeStep):
 #         self.dropout = tf.placeholder(tf.float32,name='decoder_rnn_dropout')
 
         # build a multilayer LSTM cell
-        single_cell = tf.nn.rnn_cell.BasicLSTMCell(hidden_dim, 
+        single_cell = tf.compat.v1.nn.rnn_cell.BasicLSTMCell(hidden_dim, 
             forget_bias=forget_bias)
-        self.dropout = tf.placeholder(tf.float32,name='decoder_rnn_dropout') 
+        self.dropout = tf.compat.v1.placeholder(tf.float32,name='decoder_rnn_dropout') 
         single_cell = tf.contrib.rnn.DropoutWrapper(
                 cell=single_cell, input_keep_prob=(1.0 - self.dropout))
-        self.cell = tf.nn.rnn_cell.MultiRNNCell([single_cell] * rnn_layers)
+        self.cell = tf.compat.v1.nn.rnn_cell.MultiRNNCell([single_cell] * rnn_layers)
 
     def get_logit_op(self,
                     decoder_inp,
@@ -208,7 +208,7 @@ class RNNDecodeStep(DecodeStep):
         """
 
 #         decoder_inp = tf.reshape(decoder_inp,[-1,1,self.hidden_dim])
-        _ , decoder_state = tf.nn.dynamic_rnn(self.cell,
+        _ , decoder_state = tf.compat.v1.nn.dynamic_rnn(self.cell,
                                               decoder_inp,
                                               initial_state=decoder_state,
                                               scope=self._scope+'Decoder/LSTM/rnn')

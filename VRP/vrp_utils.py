@@ -144,12 +144,12 @@ class Env(object):
         self.n_nodes = args['n_nodes']
         self.n_cust = args['n_cust']
         self.input_dim = args['input_dim']
-        self.input_data = tf.placeholder(tf.float32,\
+        self.input_data = tf.compat.v1.placeholder(tf.float32,\
             shape=[None,self.n_nodes,self.input_dim])
 
         self.input_pnt = self.input_data[:,:,:2]
         self.demand = self.input_data[:,:,-1]
-        self.batch_size = tf.shape(self.input_pnt)[0] 
+        self.batch_size = tf.shape(input=self.input_pnt)[0] 
         
     def reset(self,beam_width=1):
         '''
@@ -220,7 +220,7 @@ class Env(object):
         d_sat = tf.minimum(tf.gather_nd(self.demand,batched_idx), self.load)
 
         # update the demand
-        d_scatter = tf.scatter_nd(batched_idx, d_sat, tf.cast(tf.shape(self.demand),tf.int64))
+        d_scatter = tf.scatter_nd(batched_idx, d_sat, tf.cast(tf.shape(input=self.demand),tf.int64))
         self.demand = tf.subtract(self.demand, d_scatter)
 
         # update load
@@ -239,7 +239,7 @@ class Env(object):
 
         self.mask += tf.concat( [tf.tile(tf.expand_dims(tf.cast(tf.equal(self.load,0),
             tf.float32),1), [1,self.n_cust]),                      
-            tf.expand_dims(tf.multiply(tf.cast(tf.greater(tf.reduce_sum(self.demand,1),0),tf.float32),
+            tf.expand_dims(tf.multiply(tf.cast(tf.greater(tf.reduce_sum(input_tensor=self.demand,axis=1),0),tf.float32),
                              tf.squeeze( tf.cast(tf.equal(idx,self.n_cust),tf.float32))),1)],1)
 
         state = State(load=self.load,
@@ -283,7 +283,7 @@ def reward_func(sample_solution):
     # get the reward based on the route lengths
 
 
-    route_lens_decoded = tf.reduce_sum(tf.pow(tf.reduce_sum(tf.pow(\
-        (sample_solution_tilted - sample_solution) ,2), 2) , .5), 0)
+    route_lens_decoded = tf.reduce_sum(input_tensor=tf.pow(tf.reduce_sum(input_tensor=tf.pow(\
+        (sample_solution_tilted - sample_solution) ,2), axis=2) , .5), axis=0)
     return route_lens_decoded 
 

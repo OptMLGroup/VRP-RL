@@ -61,7 +61,7 @@ def get_time():
 def get_config_proto(log_device_placement=False, allow_soft_placement=True):
         # GPU options:
         # https://www.tensorflow.org/versions/r0.10/how_tos/using_gpu/index.html
-        config_proto = tf.ConfigProto(
+        config_proto = tf.compat.v1.ConfigProto(
                         log_device_placement=log_device_placement,
                         allow_soft_placement=allow_soft_placement)
         config_proto.gpu_options.allow_growth = True
@@ -71,7 +71,7 @@ def debug_tensor(s, msg=None, summarize=10):
         """Print the shape and value of a tensor at test time. Return a new tensor."""
         if not msg:
                 msg = s.name
-        return tf.Print(s, [tf.shape(s), s], msg + " ", summarize=summarize)
+        return tf.compat.v1.Print(s, [tf.shape(input=s), s], msg + " ", summarize=summarize)
 
 def has_nan(datum, tensor):
         if hasattr(tensor, 'dtype'):
@@ -86,22 +86,22 @@ def has_nan(datum, tensor):
 
 def openAI_entropy(logits):
         # Entropy proposed by OpenAI in their A2C baseline
-        a0 = logits - tf.reduce_max(logits, 2, keepdims=True)
+        a0 = logits - tf.reduce_max(input_tensor=logits, axis=2, keepdims=True)
         ea0 = tf.exp(a0)
-        z0 = tf.reduce_sum(ea0, 2, keepdims=True)
+        z0 = tf.reduce_sum(input_tensor=ea0, axis=2, keepdims=True)
         p0 = ea0 / z0
-        return tf.reduce_mean(tf.reduce_sum(p0 * (tf.log(z0) - a0), 2))
+        return tf.reduce_mean(input_tensor=tf.reduce_sum(input_tensor=p0 * (tf.math.log(z0) - a0), axis=2))
 
 
 def softmax_entropy(p0):
         # Normal information theory entropy by Shannon
-        return - tf.reduce_sum(p0 * tf.log(p0 + 1e-6), axis=1)
+        return - tf.reduce_sum(input_tensor=p0 * tf.math.log(p0 + 1e-6), axis=1)
 
 def Dist_mat(A):
         # A is of shape [batch_size x nnodes x 2].
         # return: a distance matrix with shape [batch_size x nnodes x nnodes]
-        nnodes = tf.shape(A)[1]
+        nnodes = tf.shape(input=A)[1]
         A1 = tf.tile(tf.expand_dims(A,1),[1,nnodes,1,1])
         A2 = tf.tile(tf.expand_dims(A,2),[1,1,nnodes,1])
-        dist = tf.norm(A1-A2,axis=3)
+        dist = tf.norm(tensor=A1-A2,axis=3)
         return dist

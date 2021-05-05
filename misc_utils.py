@@ -91,11 +91,11 @@ class Logger(object):
     
     def __init__(self, log_dir):
         """Create a summary writer logging to log_dir."""
-        self.writer = tf.summary.FileWriter(log_dir)
+        self.writer = tf.compat.v1.summary.FileWriter(log_dir)
 
     def scalar_summary(self, tag, value, step):
         """Log a scalar variable."""
-        summary = tf.Summary(value=[tf.Summary.Value(tag=tag, simple_value=value)])
+        summary = tf.compat.v1.Summary(value=[tf.compat.v1.Summary.Value(tag=tag, simple_value=value)])
         self.writer.add_summary(summary, step)
 
     def image_summary(self, tag, images, step):
@@ -111,14 +111,14 @@ class Logger(object):
             scipy.misc.toimage(img).save(s, format="png")
 
             # Create an Image object
-            img_sum = tf.Summary.Image(encoded_image_string=s.getvalue(),
+            img_sum = tf.compat.v1.Summary.Image(encoded_image_string=s.getvalue(),
                                        height=img.shape[0],
                                        width=img.shape[1])
             # Create a Summary value
-            img_summaries.append(tf.Summary.Value(tag='%s/%d' % (tag, i), image=img_sum))
+            img_summaries.append(tf.compat.v1.Summary.Value(tag='%s/%d' % (tag, i), image=img_sum))
 
         # Create and write Summary
-        summary = tf.Summary(value=img_summaries)
+        summary = tf.compat.v1.Summary(value=img_summaries)
         self.writer.add_summary(summary, step)
         
     def histo_summary(self, tag, values, step, bins=1000):
@@ -128,7 +128,7 @@ class Logger(object):
         counts, bin_edges = np.histogram(values, bins=bins)
 
         # Fill the fields of the histogram proto
-        hist = tf.HistogramProto()
+        hist = tf.compat.v1.HistogramProto()
         hist.min = float(np.min(values))
         hist.max = float(np.max(values))
         hist.num = int(np.prod(values.shape))
@@ -145,7 +145,7 @@ class Logger(object):
             hist.bucket.append(c)
 
         # Create and write Summary
-        summary = tf.Summary(value=[tf.Summary.Value(tag=tag, histo=hist)])
+        summary = tf.compat.v1.Summary(value=[tf.compat.v1.Summary.Value(tag=tag, histo=hist)])
         self.writer.add_summary(summary, step)
         self.writer.flush()
 
@@ -158,12 +158,12 @@ def _single_cell(unit_type, num_units, forget_bias, dropout, prt,
     # Cell Type
     if unit_type == "lstm":
         prt.print_out("  LSTM, forget_bias=%g" % forget_bias, new_line=False)
-        single_cell = tf.contrib.rnn.BasicLSTMCell(
+        single_cell = tf.compat.v1.nn.rnn_cell.BasicLSTMCell(
                 num_units,
                 forget_bias=forget_bias)
     elif unit_type == "gru":
         prt.print_out("  GRU", new_line=False)
-        single_cell = tf.contrib.rnn.GRUCell(num_units)
+        single_cell = tf.compat.v1.nn.rnn_cell.GRUCell(num_units)
     else:
         raise ValueError("Unknown unit type %s!" % unit_type)
 
@@ -250,15 +250,15 @@ def create_rnn_cell(unit_type, num_units, num_layers, num_residual_layers,
     if len(cell_list) == 1:  # Single layer.
         return cell_list[0]
     else:  # Multi layers
-        return tf.contrib.rnn.MultiRNNCell(cell_list)
+        return tf.compat.v1.nn.rnn_cell.MultiRNNCell(cell_list)
 
 def gradient_clip(gradients, params, max_gradient_norm):
     """Clipping gradients of a model."""
     clipped_gradients, gradient_norm = tf.clip_by_global_norm(
             gradients, max_gradient_norm)
-    gradient_norm_summary = [tf.summary.scalar("grad_norm", gradient_norm)]
+    gradient_norm_summary = [tf.compat.v1.summary.scalar("grad_norm", gradient_norm)]
     gradient_norm_summary.append(
-            tf.summary.scalar("clipped_gradient", tf.global_norm(clipped_gradients)))
+            tf.compat.v1.summary.scalar("clipped_gradient", tf.linalg.global_norm(clipped_gradients)))
 
     return clipped_gradients, gradient_norm_summary
 
@@ -274,7 +274,7 @@ def create_or_load_model(model, model_dir, session, out_dir, name):
     else:
         utils.print_out("  created %s model with fresh parameters, time %.2fs." %
                                         (name, time.time() - start_time))
-        session.run(tf.global_variables_initializer())
+        session.run(tf.compat.v1.global_variables_initializer())
 
     global_step = model.global_step.eval(session=session)
     return model, global_step
@@ -290,14 +290,14 @@ def add_summary(summary_writer, global_step, tag, value):
     """Add a new summary to the current summary_writer.
     Useful to log things that are not part of the training graph, e.g., tag=BLEU.
     """
-    summary = tf.Summary(value=[tf.Summary.Value(tag=tag, simple_value=value)])
+    summary = tf.compat.v1.Summary(value=[tf.compat.v1.Summary.Value(tag=tag, simple_value=value)])
     summary_writer.add_summary(summary, global_step)
 
 
 def get_config_proto(log_device_placement=False, allow_soft_placement=True):
     # GPU options:
     # https://www.tensorflow.org/versions/r0.10/how_tos/using_gpu/index.html
-    config_proto = tf.ConfigProto(
+    config_proto = tf.compat.v1.ConfigProto(
             log_device_placement=log_device_placement,
             allow_soft_placement=allow_soft_placement)
     config_proto.gpu_options.allow_growth = True
@@ -311,7 +311,7 @@ def debug_tensor(s, msg=None, summarize=10):
     """Print the shape and value of a tensor at test time. Return a new tensor."""
     if not msg:
         msg = s.name
-    return tf.Print(s, [tf.shape(s), s], msg + " ", summarize=summarize)
+    return tf.compat.v1.Print(s, [tf.shape(input=s), s], msg + " ", summarize=summarize)
 
 def tf_print(tensor, transform=None):
 
@@ -321,7 +321,7 @@ def tf_print(tensor, transform=None):
         # but adding a transformation of some kind usually makes the output more digestible
         print(x if transform is None else transform(x))
         return x
-    log_op = tf.py_func(print_tensor, [tensor], [tensor.dtype])[0]
+    log_op = tf.compat.v1.py_func(print_tensor, [tensor], [tensor.dtype])[0]
     with tf.control_dependencies([log_op]):
         res = tf.identity(tensor)
 
